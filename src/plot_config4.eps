@@ -1,0 +1,294 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%DocumentNeededResources: font Symbol
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Helvetica-Oblique
+%%+ font Helvetica-BoldOblique
+%%Title: R Graphics Output
+%%Creator: R Software
+%%Pages: (atend)
+%%Orientation: Portrait
+%%BoundingBox: 0 0 392 392
+%%EndComments
+%%BeginProlog
+/bp  { gs gs } def
+% begin .ps.prolog
+/gs  { gsave } def
+/gr  { grestore } def
+/ep  { showpage gr gr } def
+/m   { moveto } def
+/l   { lineto } def
+/np  { newpath } def
+/cp  { closepath } def
+/f   { fill } def
+/o   { stroke } def
+/c   { newpath 0 360 arc } def
+/r   { 3 index 3 index moveto 1 index 4 -1 roll
+       lineto exch 1 index lineto lineto closepath } def
+/p1  { stroke } def
+/p2  { gsave bg setrgbcolor fill grestore newpath } def
+/p3  { gsave bg setrgbcolor fill grestore stroke } def
+/t   { 6 -2 roll moveto gsave rotate
+       ps mul neg 0 2 1 roll rmoveto
+       1 index stringwidth pop
+       mul neg 0 rmoveto show grestore } def
+/cl  { grestore gsave newpath 3 index 3 index moveto 1 index
+       4 -1 roll lineto  exch 1 index lineto lineto
+       closepath clip newpath } def
+/rgb { setrgbcolor } def
+/s   { scalefont setfont } def
+/R   { /Font1 findfont } def
+/B   { /Font2 findfont } def
+/I   { /Font3 findfont } def
+/BI  { /Font4 findfont } def
+/S   { /Font5 findfont } def
+1 setlinecap 1 setlinejoin
+% end   .ps.prolog
+% begin encoding
+/WinAnsiEncoding [
+ /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+ /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+ /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+ /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
+ /space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright
+ /parenleft /parenright /asterisk /plus /comma /minus /period /slash
+ /zero /one /two /three /four /five /six /seven
+ /eight /nine /colon /semicolon /less /equal /greater /question
+ /at /A /B /C /D /E /F /G
+ /H /I /J /K /L /M /N /O
+ /P /Q /R /S /T /U /V /W
+ /X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore
+ /grave /a /b /c /d /e /f /g
+ /h /i /j /k /l /m /n /o
+ /p /q /r /s /t /u /v /w
+ /x /y /z /braceleft /bar /braceright /asciitilde /.notdef
+ /Euro /.notdef /quotesinglbase /florin /quotedblbase /ellipsis /dagger /daggerdbl
+ /circumflex /perthousand /Scaron /guilsinglleft /OE /.notdef /Zcaron /.notdef
+ /.notdef /quoteleft /quoteright /quotedblleft /quotedblright /bullet /endash /emdash
+ /tilde /trademark /scaron /guilsinglright /oe /.notdef /zcaron /Ydieresis
+ /space /exclamdown /cent /sterling /currency /yen /brokenbar /section
+ /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron
+ /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /periodcentered
+ /cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown
+ /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla
+ /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis
+ /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply
+ /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls
+ /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla
+ /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis
+ /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide
+ /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis
+]
+ def
+% end encoding
+/Helvetica findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+  end
+/Font1 exch definefont pop
+/Helvetica-Bold findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+  end
+/Font2 exch definefont pop
+/Helvetica-Oblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+  end
+/Font3 exch definefont pop
+/Helvetica-BoldOblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+  end
+/Font4 exch definefont pop
+/Symbol findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  currentdict
+  end
+/Font5 exch definefont pop
+%%EndProlog
+%%Page: 1 1
+bp
+/bg { 0.8275 0.8275 0.8275 } def
+0.00 0.00 392.25 391.50 r p2
+21.60 36.00 388.65 355.50 cl
+0.00 0.00 392.25 391.50 cl
+0.0000 0.0000 0.0000 rgb
+0.75 setlinewidth
+[] 0 setdash
+np
+21.60 36.00 m
+388.65 36.00 l
+388.65 355.50 l
+21.60 355.50 l
+21.60 36.00 l
+o
+21.60 36.00 388.65 355.50 cl
+/bg { 1.0000 0.9725 0.8627 } def
+0.0000 0.0000 0.0000 rgb
+0.75 setlinewidth
+[] 0 setdash
+np
+  388.65 355.50 m
+	 388.65 36.00 l
+	 21.60 36.00 l
+	 21.60 355.50 l
+cp p3
+1.0000 0.0000 0.0000 rgb
+276.67 108.70 5.40 c p1
+np
+271.27 108.70 m
+282.07 108.70 l
+o
+np
+276.67 103.30 m
+276.67 114.10 l
+o
+266.38 136.36 5.40 c p1
+np
+260.98 136.36 m
+271.78 136.36 l
+o
+np
+266.38 130.96 m
+266.38 141.76 l
+o
+241.41 143.91 5.40 c p1
+np
+236.01 143.91 m
+246.81 143.91 l
+o
+np
+241.41 138.51 m
+241.41 149.31 l
+o
+178.28 132.74 5.40 c p1
+np
+172.88 132.74 m
+183.68 132.74 l
+o
+np
+178.28 127.34 m
+178.28 138.14 l
+o
+153.72 204.18 5.40 c p1
+np
+148.32 204.18 m
+159.12 204.18 l
+o
+np
+153.72 198.78 m
+153.72 209.58 l
+o
+212.01 179.18 5.40 c p1
+np
+206.61 179.18 m
+217.41 179.18 l
+o
+np
+212.01 173.78 m
+212.01 184.58 l
+o
+225.52 175.49 5.40 c p1
+np
+220.12 175.49 m
+230.92 175.49 l
+o
+np
+225.52 170.09 m
+225.52 180.89 l
+o
+172.07 152.71 5.40 c p1
+np
+166.67 152.71 m
+177.47 152.71 l
+o
+np
+172.07 147.31 m
+172.07 158.11 l
+o
+166.64 213.50 5.40 c p1
+np
+161.24 213.50 m
+172.04 213.50 l
+o
+np
+166.64 208.10 m
+166.64 218.90 l
+o
+317.79 259.65 5.40 c p1
+np
+312.39 259.65 m
+323.19 259.65 l
+o
+np
+317.79 254.25 m
+317.79 265.05 l
+o
+0.00 0.00 392.25 391.50 cl
+0.0000 0.0000 0.0000 rgb
+0.75 setlinewidth
+[] 0 setdash
+np
+35.19 36.00 m
+375.06 36.00 l
+o
+np
+35.19 36.00 m
+35.19 33.12 l
+o
+np
+205.12 36.00 m
+205.12 33.12 l
+o
+np
+375.06 36.00 m
+375.06 33.12 l
+o
+np
+21.60 121.79 m
+21.60 269.71 l
+o
+np
+21.60 121.79 m
+18.72 121.79 l
+o
+np
+21.60 195.75 m
+18.72 195.75 l
+o
+np
+21.60 269.71 m
+18.72 269.71 l
+o
+0.00 0.00 392.25 391.50 cl
+/ps 12 def BI 12 s
+0.0000 0.0000 0.0000 rgb
+388.65 369.19 (How to customize a plot with R \(ter\)) 1.00 0.00 0.00 t
+0.00 0.00 392.25 391.50 cl
+/ps 11 def I 11 s
+0.0000 0.0000 0.0000 rgb
+290.09 10.08 (Ten random values) 0.50 0.00 0.00 t
+52.19 365.58 (Ten other values) 0.50 0.00 0.00 t
+/ps 11 def R 11 s
+0.0000 0.0000 1.0000 rgb
+35.19 20.16 (-2) 0.50 0.00 0.00 t
+205.12 20.16 (0) 0.50 0.00 0.00 t
+375.06 20.16 (2) 0.50 0.00 0.00 t
+18.72 117.47 (-1) 1.00 0.00 0.00 t
+18.72 191.43 (0) 1.00 0.00 0.00 t
+18.72 265.39 (1) 1.00 0.00 0.00 t
+59.04 73.44 362.01 332.46 cl
+ep
+%%Trailer
+%%Pages: 1
+%%EOF

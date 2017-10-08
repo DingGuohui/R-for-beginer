@@ -1,0 +1,903 @@
+\section{R的统计分析}
+
+尽管R的统计功能比作图功能强很多，但这里不可能
+很详细地去描述它所有的统计分析功能.
+我的目的是在这里给读者对R统计分析功能的一个
+粗略而又系统的介绍.
+
+包 {\sf stats} 包括了一系列基本的统计分析函数：
+经典的假设检验, 线性模型 (包括
+最小二乘法回归, 广义线性模型, 和方差分析),
+ 统计分布, 汇总统计, 层次聚类,
+时间序列分析, 非线性最小二乘法和多元
+分析. 其他的R包还提供了一些上述统计方法以外的
+的统计方法.
+和基本R安装同时发布的统计包被标注为\emph{推荐包}, 而其他的包标注为
+\emph{捐献包}并且要求用户自己
+安装.
+
+我们以一个简单的例子开始。这个例子仅仅需要包
+{\sf stats}, 但它可以说明用R进行分析的大体过程。
+然后,我们将细致讲述两个在所有统计分析中都非常有用的
+概念, \emph{公式}(formulae) 和 \emph{泛型函数}(generic functions).
+我们还会对所有的包进行一个总结.
+
+\subsection{关于方差分析的一个简单例子}
+
+在包 {\sf stats} 里面的方差分析函数是 \code{aov}.
+为了示范这个函数, 我们采用R分发的数据集
+: \code{InsectSprays}. 六种杀虫剂将会在田野中进行效价测试
+, 观测变量是昆虫的个数. 每种杀虫剂重复测试了
+12 次, 因此共有72次观测致.我们不想在这里讨论
+这些数据的统计图分析, 我们的焦点在于
+分析观测值相对各种杀虫剂的方差.
+通过函数\code{data} 把数据导入内存后, 
+首先对数据进行平方根转换，然后再进行分析:
+
+\begin{verbatim}
+> data(InsectSprays)
+> aov.spray <- aov(sqrt(count) ~ spray, data = InsectSprays)
+\end{verbatim}
+
+函数\code{aov}的主要参数(必要的)是一个公式.
+公式的左边是响应变量，右边是预测变量，二者通过
+\code{\~{}} 连接. 可选项
+\code{data = InsectSprays} 表明这些变量是在
+数据框 \code{InsectSprays}中. 下面的语句和前面的语句在语法上等价:
+
+\begin{verbatim}
+> aov.spray <- aov(sqrt(InsectSprays$count) ~ InsectSprays$spray)
+\end{verbatim}
+如果我们知道列的编号, 我们还可以如下分析:
+
+\begin{verbatim}
+> aov.spray <- aov(sqrt(InsectSprays[, 1]) ~ InsectSprays[, 2])
+\end{verbatim}
+当然, 第一种方式是首选的, 因为它最为简明易懂.
+
+前面脚本运行的结果不会在屏幕上显示, 因为它们都被赋给对象
+ \code{aov.spray}. 我们必须采用一些函数去解析这些
+结果, 如函数 \code{print} 可以对分析结果进行一个简单的
+总结 (一般是要估计的参数), 函数 \code{summary} 可以
+显示更多的细节(包括统计检验的结果):
+
+\begin{verbatim}
+> aov.spray
+Call:
+   aov(formula = sqrt(count) ~ spray, data = InsectSprays)
+
+Terms:
+                   spray Residuals
+Sum of Squares  88.43787  26.05798
+Deg. of Freedom        5        66
+
+Residual standard error: 0.6283453 
+Estimated effects may be unbalanced
+> summary(aov.spray)
+            Df Sum Sq Mean Sq F value    Pr(>F)    
+spray        5 88.438  17.688  44.799 < 2.2e-16 ***
+Residuals   66 26.058   0.395                      
+---
+Signif. codes:  0 `***' 0.001 `**' 0.01 `*' 0.05 `.' 0.1 ` ' 1
+\end{verbatim}
+
+需要说明的是，直接键入对象名字和
+命令 \code{print(aov.spray)} 的结果是类似的. 可以通过
+函数 \code{plot()} 和\code{termplot()} 展示分析结果的统计图.
+在键入函数 \code{plot(aov.spray)}前, 我们必须
+把图形界面分成四部分, 这样就可以让四个统计诊断图
+在同一个图上显示. 相应的命令是\footnote{译者注:我个人更喜欢用函数\code{layout} ^_^}:
+
+\begin{verbatim}
+> opar <- par()
+> par(mfcol = c(2, 2))
+> plot(aov.spray)
+> par(opar)
+> termplot(aov.spray, se=TRUE, partial.resid=TRUE, rug=TRUE)
+\end{verbatim}
+运行结果如图~\ref{plot_aov} 和 \ref{termplot_aov} 所示.
+
+ \begin{figure}[h] \begin{center}
+\includegraphics[scale=0.5]{plot_aov_Insect.eps}
+\caption{通过函数 \code{plot()} 图形化展示函数 \code{aov}的分析结果.\label{plot_aov}}
+ \end{center} \end{figure}
+
+ \begin{figure}[h] \begin{center}
+\includegraphics[scale=0.5]{termplot_aov_Insect.eps}
+\caption{通过函数 \code{termplot()} 图形化展示函数 \code{aov}的分析结果.\label{termplot_aov}}
+ \end{center} \end{figure}
+
+\subsection{公式}
+
+公式是R统计分析里面的关键元素: 几乎所有
+函数都采用一样的符号\footnote{译者注:也有些例外, 基本上趋同.}.公式的典型
+形式是 \code{y \~{} \textsl{model}}, 其中\code{y}是
+响应变量, \code{\textsl{model}} 是一些元素项的集合而且其中
+有些参数就是将要被估计的. 这些元素项通过
+一些有特殊涵义的算术符号连接.
+
+\vspace{3mm}
+
+ \begin{tabular}{lp{9.5cm}}
+\code{a+b} & \code{a} 和 \code{b}的相加效应 \\
+\code{X} & 如果 \code{X} 是一个矩阵, 这将反映各列的相加效应, 即 \ \code{X[,1]+X[,2]+...+X[,ncol(X)]}; 还可以通过索引向量选择特定列进行分析 (如, \code{X[,2:4]})\\
+\code{a:b} & \code{a} 和 \code{b} 的交互效应\\
+\code{a*b} & 相加和交互效应 (等价于 \code{a+b+a:b})\\
+\code{poly(a, n)} & \code{a}的 $n$价多项式拟合\\
+\code{\^{}n} & 包含所有的因子作用方式, 直到 $n$ 价, 即 \ \code{(a+b+c)\^{}2} 等价于 \code{a+b+c+a:b+a:c+b:c}\\
+\code{b \%in\% a} & \code{b} 和 \code{a}的嵌套分类设计 (等价于 \code{a+a:b}, 或者 \code{a/b})\\
+\code{-b} & 去掉因子 \code{b}的影响, 如: \code{(a+b+c)\^{}2-a:b} 等价于 \code{a+b+c+a:c+b:c}\\
+\code{-1} & \code{y\~{}x-1} 表示通过原点的线性回归 (等价于\ \code{y\~{}x+0} 或者 \code{0+y\~{}x})\\
+\code{1} & \code{y\~{}1} 拟合一个没有因子影响的模型 (仅仅是截距)\\
+\code{offset(...)} & 向模型中增加一个影响因子但不估计任何参数 (如, \code{offset(3*x)})\\
+ \end{tabular}
+
+\vspace{3mm}
+
+可以看出, 在R公式里面采用的算术符号和表达式里面使用的算术符号
+有着不同的含义.例如, 公式
+\code{y\~{}x1+x2} 表示模型 $y = \beta_1 x_1 + \beta_2
+x_2 + \alpha$, 而不是 (如果 \code{+} 采用它常规的含义
+) $y = \beta(x_1 + x_2) + \alpha$. 为了可以在公式中使用
+常规的算术符号, 我们可以使用函数 \code{I}: 公式
+\code{y\~{}I(x1+x2)} 表示模型 $y = \beta(x_1 + x_2) +
+\alpha$.  类似的, 为了定义模型 $y = \beta_1 x + \beta_2 x^2
++ \alpha$, 我们可以使用公式 \code{y \~{} poly(x, 2)} (而非
+\code{y \~{} x + x\^{}2}). 但是, 为了对变量进行一定的转换,
+可以在公式中包含一些函数，如前面的杀虫剂效价分析的
+方差分析公式.
+
+对于方差分析, \code{aov()} 用一个特别的语法规则定义
+随机效应. 例如, \code{y \~{} a + Error(b)} 表示
+固定项 \code{a}和随机项
+\code{b}的相加效应.
+
+\subsection{泛型函数}
+
+和许多统计编程语言不同的是, R函数将输入对象的
+属性作为输入参数. \emph{类}是最应该关注的
+的一个属性.R统计函数常常返回
+一个同名类的对象
+(如, \code{aov} 返回类 \code{"aov"}的对象, \code{lm}
+返回类 \code{"lm"}的对象). 我们用来解析结果的函数
+对特定的类对象有特定的行为.
+这些函数被称为\emph{泛型}(generic)\footnote{译者注:在Java, C++等面向对象语言中, 泛型有更为详细的介绍.这里, 我是借用了它们的概念.此外, 我觉得R里面的泛型,更像Java里面的接口.}.
+
+例如, 最常用的解析统计分析结果的R函数是
+ \code{summary}. 它可以用来显示较为细致的结果. 无论
+作为参数的对象可能是 \code{"lm"} 类(线性模型) 或者
+\code{"aov"} 类(方差分析), 
+显示的信息显然是不一样的. 泛型函数的优势在于
+一个函数对所有类的使用定义都是一样的\footnote{译者注:这里和Java的接口定义非常的相似.}.
+
+一个包含分析结果的对象常常是一个列表对象,
+而它的结果展示方式由它的类定义所决定. 前面的例子中已经体现这种思想，
+就是一个函数的行为由输入参数的对象类型决定\footnote{译者注:函数多态性.}.
+这是 R \footnote{在 R
+里面有超过100个泛型函数.}的一个重要性质. 下面的列表列出一些
+用于提取分析结果对象的信息的主要泛型
+函数. 这些函数的
+典型使用方式为:
+
+\begin{verbatim}
+> mod <- lm(y ~ x)
+> df.residual(mod)
+[1] 8
+\end{verbatim}
+
+ \begin{Ltable}
+ \begin{tabular}{|l|p{10.5cm}|}
+ \hline
+\code{print} & 返回简单的汇总信息\\
+ \hline
+\code{summary} & 返回较为详细的汇总信息\\
+ \hline
+\code{df.residual} & 返回残差的自由度\\
+ \hline
+\code{coef} & 返回被估计的系数 (有时还包括他们的标准差)\\
+ \hline
+\code{residuals} & 返回残差\\
+ \hline
+\code{deviance} & 返回方差\\
+ \hline
+\code{fitted} & 返回拟合值\\
+ \hline
+\code{logLik} & 计算对数似然值和返回参数数目\\
+ \hline
+\code{AIC} & 计算 Akaike 信息准则(Akaike information criterion, AIC)(依赖于\code{logLik()})\\
+ \hline
+ \end{tabular}
+ \end{Ltable}
+
+像 \code{aov} 或者 \code{lm}之类的函数返回一个和分析结果
+的不同元素对于的列表对象. 以前面对
+数据集
+\code{InsectSprays}进行的方差分析为例, 我们可以看一下
+\code{aov} 返回对象的结构:
+
+\begin{verbatim}
+> str(aov.spray, max.level = -1)
+List of 13
+ - attr(*, "class")= chr [1:2] "aov" "lm"
+\end{verbatim}
+
+另外一种查看对象结构的方法是显示
+列表对象各个元素的名字:
+
+\begin{verbatim}
+> names(aov.spray)
+ [1] "coefficients"  "residuals"     "effects"      
+ [4] "rank"          "fitted.values" "assign"       
+ [7] "qr"            "df.residual"   "contrasts"    
+[10] "xlevels"       "call"          "terms"        
+[13] "model"
+\end{verbatim}
+
+这些看到的元素都可以解析出来:
+
+\begin{verbatim}
+> aov.spray$coefficients
+(Intercept)      sprayB      sprayC      sprayD 
+  3.7606784   0.1159530  -2.5158217  -1.5963245 
+     sprayE      sprayF 
+ -1.9512174   0.2579388
+\end{verbatim}
+
+在\code{aov()}例子中的\code{summary()}函数实际上也创建了一个
+简单的列表对象:
+
+\begin{verbatim} 
+> str(summary(aov.spray))
+List of 1
+ $ :Classes anova  and `data.frame':    2 obs. of  5 variables:
+  ..$ Df     : num [1:2] 5 66
+  ..$ Sum Sq : num [1:2] 88.4 26.1
+  ..$ Mean Sq: num [1:2] 17.688  0.395
+  ..$ F value: num [1:2] 44.8   NA
+  ..$ Pr(>F) : num [1:2] 0 NA
+ - attr(*, "class")= chr [1:2] "summary.aov" "listof"
+> names(summary(aov.spray))
+NULL
+\end{verbatim}
+
+泛型函数很少对对象进行任何操作: 它们
+调用作为参数的类的一些对应的函数.
+在R的术语里面, 泛型调用的函数称为\emph{方法}(method).
+简略地说, 一个方法的构建方式是 \code{\textsl{generic.cls}}, 其中
+\code{\textsl{cls}} 是对象的类.例如,以
+\code{summary} 为例, 我们可以显示对应的方法:
+
+\begin{verbatim}
+> apropos("^summary")
+ [1] "summary"               "summary.aov"          
+ [3] "summary.aovlist"       "summary.connection"   
+ [5] "summary.data.frame"    "summary.default"      
+ [7] "summary.factor"        "summary.glm"          
+ [9] "summary.glm.null"      "summary.infl"         
+[11] "summary.lm"            "summary.lm.null"      
+[13] "summary.manova"        "summary.matrix"       
+[15] "summary.mlm"           "summary.packageStatus"
+[17] "summary.POSIXct"       "summary.POSIXlt"      
+[19] "summary.table"
+\end{verbatim}
+
+通过下面的简单的例子,
+我们可以发现这些泛型函数在线性回归和方差分析
+中的行为是不同的:
+
+\begin{verbatim}
+> x <- y <- rnorm(5); 
+> lm.spray <- lm(y ~ x)
+> names(lm.spray)
+ [1] "coefficients"  "residuals"     "effects"      
+ [4] "rank"          "fitted.values" "assign"       
+ [7] "qr"            "df.residual"   "xlevels"      
+[10] "call"          "terms"         "model"        
+> names(summary(lm.spray))
+ [1] "call"          "terms"         "residuals"    
+ [4] "coefficients"  "sigma"         "df"           
+ [7] "r.squared"     "adj.r.squared" "fstatistic"   
+[10] "cov.unscaled"
+\end{verbatim}
+
+下面的表格中显示了一些可以对分析结果对象做一些补充分析的泛型函数,
+主要参数一般都是分析结果对象, 但是有些情况下,如
+泛型函数如 \code{predict} 或 \code{update}
+需要一些额外的参数.
+
+ \begin{Ltable}
+ \begin{tabular}{|l|p{10.5cm}|}
+ \hline
+\code{add1} & 连续测试所有可以加入模型的元素项\\
+ \hline
+\code{drop1} & 连续测试所有可以从模型中移除的元素项\\
+ \hline
+\code{step} & 通过 AIC (调用\code{add1} 和 \code{drop1})选择一个模型\\
+ \hline
+\code{anova} & 计算一个或多个模型的方差/残差分析表\\
+ \hline
+\code{predict} & 通过拟合的模型计算一个新的数据集的预测值\\
+ \hline
+\code{update} & 用新的数据或者公式拟合一个模型\\
+ \hline
+ \end{tabular}
+ \end{Ltable}
+
+还有很多各种各样用于从模型对象或者公式中提取信息的效用函数,
+如函数 \code{alias} 可以用来查找
+一个特定公式拟合的线性模型中的
+线性依赖项.
+
+最后,还有许多图形函数, 如 \code{plot}
+显示各种各样的诊断图, 或者\code{termplot} (见上面的
+例子), 尽管后面一个函数不是泛型函数但它调用泛型函数
+\code{predict}.
+
+\subsection{包}
+
+下表将列出随R基本安装环境发布的 {\em 标准} 包.
+其中一些包在R启动时就直接调入内存;
+这些可用通过函数
+\code{search} 显示:
+
+\begin{verbatim}
+> search()
+[1] ".GlobalEnv"        "package:methods"
+[3] "package:stats"     "package:graphics"
+[5] "package:grDevices" "package:utils"
+[7] "package:datasets"  "Autoloads"
+[9] "package:base"
+\end{verbatim}
+
+其他包需要在载入后才能使用:
+
+\begin{verbatim}
+> library(grid)
+\end{verbatim}
+
+一个包中可以使用的函数可以通过下面的方式显示:
+
+\begin{verbatim}
+> library(help = grid)
+\end{verbatim}
+或者直接方法网页格式的帮助文档. 任何函数的相关信息
+可以用
+(~\pageref{online_help})页描述的方法访问.
+
+\vspace{3mm}
+
+ \begin{center}
+\begin{tabular}{lp{10cm}}
+ \toprule
+{\bf 包} & {\bf 描述}\\
+ \midrule
+{\sf base} & 基本R函数\\
+{\sf datasets} & 基本R数据集\\
+{\sf grDevices} & 基本的或栅格图形的设备函数\\
+{\sf graphics} & 基本图形函数\\
+{\sf grid} & 栅格图形\\
+{\sf methods} & 用于R对象和编程工具的方法和类的
+定义\\
+{\sf splines} & 样条回归函数和类\\
+{\sf stats} & 统计函数\\
+{\sf stats4} & 基于S4标准定义的统计函数\\
+{\sf tcltk} & R 和 Tcl/Tk 图形接口元素的交互函数\\
+{\sf tools} & 包开发和管理的工具\\
+{\sf utils} & R 效用函数\\
+ \bottomrule
+\end{tabular}
+ \end{center}
+
+\vspace{3mm}
+
+许多\emph{捐献} 包都加入了R的统计方法列表.
+它们各自发布，需要安装和载入R.
+可以在CRAN 网站上
+\footnote{\href{http://cran.r-project.org/src/contrib/PACKAGES.html}{http://cran.r-project.org/src/contrib/PACKAGES.html}}得到
+捐献包的完整列表以及相关描述.
+其中的一些包标明是\emph{推荐}使用的, 因为它们
+包括了一些在数据分析中常用的统计方法. 推荐包
+常常和R的基本安装环境捆绑发布. 在下面的表中
+将会对它们进行简单的描述.
+
+\vspace{3mm}
+
+ \begin{center}
+\begin{tabular}{lp{10cm}}
+ \toprule
+{\bf 包} & {\bf 描述}\\
+ \midrule
+{\sf boot} &  抽样和 bootstraping 方法\\
+{\sf class} & 分类方法\\
+{\sf cluster} & 聚类方法\\
+{\sf foreign} & 读取各种格式(S3, Stata, SAS, Minitab, SPSS, Epi Info)的外部数据 \\
+{\sf KernSmooth} & 核密度拟合方法(包括双变量核)\\
+{\sf lattice} & 栅格图\\
+{\sf MASS} & Venables \& Ripley 著的 ``Modern Applied Statistics with S'' 中的配套库, 包含很多有用的函数,工具和数据集 \\
+{\sf mgcv} & 广义的加和模型\\
+{\sf nlme} & 线性和非线性混合模型\\
+{\sf nnet} & 神经网络和多项式对数线性模型\\
+{\sf rpart} & 递归分割\\
+{\sf spatial} & 空间分析(``kriging'', 空间协方差, \ldots)\\
+{\sf survival} & 生存分析\\
+ \bottomrule
+\end{tabular}
+ \end{center}
+
+\vspace{3mm}
+
+还有另外两个重要的R资源库: Omegahat项目
+着力于网络应用程序的统计计算\footnote{\href{http://www.omegahat.org/R/}{http://www.omegahat.org/R/}}
+并且定义R语言和一般编程语言
+之间的接口, Bioconductor 项目
+\footnote{\href{http://www.bioconductor.org/}{http://www.bioconductor.org/}} 专注于
+生物信息类的软件(特别是
+生物芯片数据的分析).
+
+一个包的安装方式决定于操作系统以及
+R是直接从源码编译安装还是用编译好的二进制代码安装. 在后面一种
+情况下,推荐采用安装CRAN 网站已经
+编译好的包. 在 Windows 系统中, 程序 Rgui.exe
+有一个``Packages''菜单, 它允许通过网络
+或者本地的压缩文件直接安装.
+
+如果R是本地编译的, 包可以通过源码(常常是以`.tar.gz'作为扩展名的文件)
+编译安装. 例如，如果我们想安装包
+{\sf gee}, 首先下载文件
+gee\_4.13-6.tar.gz (数字 4.13-6 表明包的版本号
+; 在CRAN, 一个包常常只有一个版本号). 然后, 在系统控制台(不是R控制台)
+键入如下命令:
+
+\begin{verbatim}
+R CMD INSTALL gee_4.13-6.tar.gz
+\end{verbatim}
+
+有几个非常有用的包管理函数, 如
+\code{installed. packages}, \code{CRAN.packages}, 或者
+\code{download.packages}. 定期键入如下命令是
+非常有用的:
+
+\begin{verbatim}
+> update.packages()
+\end{verbatim}
+这个命令将会比较系统安装包的版本与
+目前CRAN可以获得的包的版本 (在Windows系统中, 这个命令可以从
+``Packages'' 菜单中调用). 用户可以用这个命令更新
+自己电脑上已经安装的包.
+
+\section{R编程实践}
+
+自此, 我们已经对 R 的功能有个全面的了解, 下面将从
+统计语言和编程角度来说明. 我们将会了解
+一些在R编程实践中采用的简单的概念.
+
+\subsection{循环和向量化}
+
+相比下拉菜单式的程序, R的一个优势在于
+它可以把一系列连续的操作简单的程序化.
+这一点上和所有其他计算机编程语言是一致的, 但
+R有一些特性使得非专业人士
+也可以很简单的编写程序.
+
+和其他编程语言一样, R 有一些和C语言类似的\emph{控制结构}.
+假定我们有一个向量
+\code{x}, 对于向量 \code{x} 中值为 \code{b}的元素, 我们
+我们把0赋给另外一个等长向量 \code{y}的对应元素, 否则赋 1. 我们首先创建
+一个与向量\code{x}等长的向量 \code{y}:
+
+\begin{verbatim}
+y <- numeric(length(x))
+for (i in 1:length(x)) if (x[i] == b) y[i] <- 0 else y[i] <- 1
+\end{verbatim}
+
+几个指令可以放在一个大括弧里面:
+
+\begin{verbatim}
+for (i in 1:length(x)) {
+    y[i] <- 0
+    ...
+}
+
+if (x[i] == b) {
+    y[i] <- 0
+    ...
+}
+\end{verbatim}
+
+另外一种可能的情况是当条件为真的时候
+一条指令才执行:
+
+\begin{verbatim}
+while (myfun > minimum) {
+    ...
+}
+\end{verbatim}
+
+但是, 由于R的一些特性, 在很多情况下
+循环和控制结构可以避免:
+\emph{向量化}. 向量化使得循环暗含在表达
+式中, 前面的例子中已经多次采用了. 比如, 两个
+向量之和:
+
+\begin{verbatim}
+> z <- x + y
+\end{verbatim}
+
+这种加和可以通过循环结构来实现, 就像很多编程语言
+采用的策略一样:
+
+\begin{verbatim}
+> z <- numeric(length(x))
+> for (i in 1:length(z)) z[i] <- x[i] + y[i]
+\end{verbatim}
+
+在这个例子中, 由于要用到向量的索引系统,
+有必要预先创建一个向量 \code{z}.
+显然, 这种显式的循环仅仅用于
+向量\code{x} 和 \code{y} 等长的
+情况: 如果不是这样程序代码需要改变, 而第一种
+表达方式在任何情况下都成立\footnote{译者注:如果对R的向量循环使用方式不了解的话,这里要小心一点.}. 
+
+条件语句 (\code{if ... else}) 可以用
+逻辑索引向量代替; 同样上面的例子:
+
+\begin{verbatim}
+> y[x == b] <- 0
+> y[x != b] <- 1
+\end{verbatim}
+
+除了让代码更简洁, 向量化的表达式
+在计算上效率更高, 特别是大数据量的数据集.
+
+有多个 `apply' 形式的函数用于避免
+使用代码的显式循环结构. \code{apply} 作用于矩阵的行或者/和列,
+它的语法规则是 \code{apply(X, MARGIN, FUN, ...)}, 其中
+\code{X}是一个矩阵, \code{MARGIN} 表明是对
+行 (\code{1}) 还是列(\code{2}), 或者二者 (\code{c(1, 2)})进行操作,
+\code{FUN} 是一个函数 (或操作符, 但是这种情况下操作符要
+在一个括弧里面指定
+\footnote{译者注:我没有用过这种情况,原文为``or an operator, but in this case it must be specified within brackets''}) 
+, \code{...} 是函数 \code{FUN}可能的参数. 一个简单的例子如下.
+
+\begin{verbatim}
+> x <- rnorm(10, -5, 0.1)
+> y <- rnorm(10, 5, 2)
+> X <- cbind(x, y)  # 矩阵X的列名保持 "x" 和 "y"
+> apply(X, 2, mean)
+        x         y 
+-4.975132  4.932979 
+> apply(X, 2, sd)
+        x         y 
+0.0755153 2.1388071
+\end{verbatim}
+
+\code{lapply()} 可以用于一个列表对象: 它的语法类似 \code{apply}
+并且返回一个列表对象.
+
+\begin{verbatim}
+> forms <- list(y ~ x, y ~ poly(x, 2))
+> lapply(forms, lm)
+[[1]]
+
+Call:
+FUN(formula = X[[1]])
+
+Coefficients:
+(Intercept)            x  
+     31.683        5.377  
+
+
+[[2]]
+
+Call:
+FUN(formula = X[[2]])
+
+Coefficients:
+(Intercept)  poly(x, 2)1  poly(x, 2)2  
+     4.9330       1.2181      -0.6037
+\end{verbatim}
+
+\code{sapply()} 是函数 \code{lapply()} 一个更为灵活的变种, 
+它可以接受向量或者矩阵作为主要参数, 并且返回
+形式更为友好的结果, 常常是表格方式.
+
+\subsection{用R写程序}
+
+一般情况下, 一个R程序以 ASCII 格式保存,扩展名为
+`.R'. 如果一个工作要重复好多次, 用R程序是一个
+不错的选择. 在我们的第一个例子中, 
+我们想在三个不同种属的鸟中绘制一样的图,
+而且数据在三个不同的文件中.  我们将一步一步的演示
+看R用不同的方式去完成这个
+简单的问题.
+
+首先, 我们凭直觉连续键入一系列命令,
+而且预先分割
+图形设备.
+
+\begin{verbatim}
+layout(matrix(1:3, 3, 1))              # 分割图形界面
+data <- read.table("Swal.dat")         # 读入数据
+plot(data$V1, data$V2, type="l")      
+title("swallow")                       # 增加标题
+data <- read.table("Wren.dat")
+plot(data$V1, data$V2, type="l")
+title("wren")
+data <- read.table("Dunn.dat")
+plot(data$V1, data$V2, type="l")
+title("dunnock") 
+\end{verbatim}
+
+字符 `\code{\#}' 用于在程序中添加注释行: R 
+会自动跳过注释行.
+
+第一个程序的问题是在我们加入另外一个物种数据时, 它过长.
+此外, 一些命令多次执行,
+因此它们可以放在一起,在执行的时候仅仅修改一些参数.
+这里的策略是把参数放到一个字符模式的向量中去,
+然后用索引去访问
+这些不同的值.
+
+\begin{verbatim}
+layout(matrix(1:3, 3, 1))                # 分割图形界面
+species <- c("swallow", "wren", "dunnock")
+file <- c("Swal.dat" , "Wren.dat", "Dunn.dat")
+for(i in 1:length(species)) {
+    data <- read.table(file[i])          # 读入数据
+    plot(data$V1, data$V2, type="l")
+    title(species[i])                    # 增加标题
+}
+\end{verbatim}
+
+注意代码\code{read.table()}里面的参数 \code{file[i]} 上面没有双引号,
+ 因为这个参数是字符模式.
+
+现在的代码比较紧凑. 它比较容易加入新的物种, 
+因为设置物种名字和数据文件的向量都
+程序的前端.
+
+如果扩展名为`.dat'的数据文件在R的工作目录下面, 
+程序可以正常运行, 否则用户要设置工作目录,
+或者设置绝对路径 (例如:
+\code{file <- "/home/paradis/data/Swal.dat"}). 如果程序保存在
+文件 Mybirds.R 中, 可以通过键入如下命令执行:
+
+\begin{verbatim}
+> source("Mybirds.R")
+\end{verbatim}
+
+和所有以文件作为输入对象的函数一样, 如果该文件不在当前工作目录下面,
+用户需要提供该文件的绝对路径.
+
+\subsection{编写你自己的函数} \label{function}
+
+大多数R的工作是通过函数来实现, 而且这些函数的输入参数都放在
+一个括弧里面. 用户可以编写他们自己的函数, 
+并且这些函数和R里面的其他函数有
+一样的特性.
+
+编写自己的函数可以让你有效的,灵活的与合理的使用R.
+我们再次使用前面读数据并且画图的例子.
+如果我们想在其他情况下进行这样的操作,
+写一个函数是一个不错的想法:
+
+\begin{verbatim}
+myfun <- function(S, F)
+{
+    data <- read.table(F)
+    plot(data$V1, data$V2, type="l")
+    title(S)
+}
+\end{verbatim}
+
+执行时, 这个函数必须载入内存.当然, 这有
+多种方式实现. 和所有其他命令一样, 函数的各行
+可以直接通过键盘键入,或者从一个文本编辑器里面
+拷贝粘贴.如果函数保存在一个文本文件中, 可以
+命令 \code{source()} 载入. 如果用户
+期望一些函数在R启动时就被载入, 可以把它们
+保存在工作目录下面的文件\code{.RData}中.
+另外一种方式是, 配置
+文件`.Rprofile' 或 `Rprofile' (详见 \code{?Startup} for
+details). 最后, 还可以创建一个包, 但是
+这里不想多讨论(见手册 ``编写R扩展'').
+
+一旦函数载入后, 我们就可以键入一条命令以读入
+数据和画出我们想要的图, 如
+\code{myfun("swallow", "Swal.dat")}. 因此,
+现在我们的程序有第三个实现的版本了:
+
+\begin{verbatim}
+layout(matrix(1:3, 3, 1))
+myfun("swallow", "Swal.dat")
+myfun("wren", "Wrenn.dat")
+myfun("dunnock", "Dunn.dat")
+\end{verbatim}
+
+我们还可以用 \code{sapply()} 实现程序
+的第四个版本:
+
+\begin{verbatim}
+layout(matrix(1:3, 3, 1))
+species <- c("swallow", "wren", "dunnock")
+file <- c("Swal.dat" , "Wren.dat", "Dunn.dat")
+sapply(species, myfun, file)
+\end{verbatim}
+
+在R里面, 没有必要在一个函数里面进行变量声明.
+当一个函数执行时,
+R用一种称为 \textit{词汇作用域}的规则来
+一个对象的作用域相对一个函数是局部还是全局.为了
+理解这种机制, 我们可以认真研究一下下面的一个
+简单函数:
+
+\begin{verbatim}
+> foo <- function() print(x)
+> x <- 1
+> foo()
+[1] 1
+\end{verbatim}
+
+\code{x} 不是为了在函数 \code{foo()}里面创建对象, 因此 R 将会在
+\emph{封装}环境中搜索是否有个名为
+\code{x} 的对象, 和打印它的值 (否则一条错误信息将会显示, 
+执行中断).
+
+如果\code{x}是我们定义的函数中一个对象的名字, 
+全局环境中变量\code{x} 值将会被采用.
+
+\begin{verbatim}
+> x <- 1
+> foo2 <- function() { x <- 2; print(x) }
+> foo2()
+[1] 2
+> x
+[1] 1
+\end{verbatim}
+
+此时, \code{print()} 使用在它所在的环境中定义的 \code{x},
+即环境 \code{foo2} 中的\code{x}.
+
+前面提及的``\emph{封装}''是关键所在.在前面两个演示函数中,
+有\emph{两个}环境: 全局环境和
+函数 \code{foo} 或 \code{foo2}的局部环境. 如果有三个或者
+更多的嵌套环境, 对象搜索将逐层
+搜索直到
+全局环境.
+
+有两种方式指定一个函数的参数: 通过它们的
+定义时的位置或者名字 (又称为 \emph{标签参数}). 例如,
+假定一个函数有三个参数:
+
+\begin{verbatim}
+foo <- function(arg1, arg2, arg3) {...}
+\end{verbatim}
+
+\code{foo()} 在执行时可以不用名字 \code{arg1},
+\ldots{}, 如果相应的参数对象放在相应的位置上,
+如: \code{foo(x, y, z)}. 但是, 如果使用了参数的名字,
+位置信息将会失效,
+如 \code{foo(arg3 = z, arg2 = y, arg1 = x)}. R函数的另外一个特性是
+函数可能采用定义时的默认设置.
+例如:
+
+\begin{verbatim}
+foo <- function(arg1, arg2 = 5, arg3 = FALSE) {...}
+\end{verbatim}
+命令 \code{foo(x)}, \code{foo(x, 5, FALSE)} 和 \code{foo(x,
+  arg3 = FALSE)} 将会
+得到一样的结果. 使用一个函数的默认设置非常有用,
+特别在使用标签参数的时候, 如\code{foo(x,
+  arg3 = TRUE)} 仅仅改变一个默认设置.
+
+在结束本章前, 我们来看另外一个例子. 尽管这个例子不是纯的统计学例子, 但是
+它很好地展示了 R 语言的弹性. 假定我们想研究
+非线性模型的行为: Ricker 模型定义如下:
+
+\begin{displaymath}
+N_{t+1} = N_t \exp \left[r\left(1 - \frac{N_t}{K}\right)\right]
+\end{displaymath}
+
+这个模型广泛地用于群体统计学里面,特别是
+鱼类. 我们想用一个函数去模拟这个模型中
+增长率 $r$ 和初始群体大小 $N_0$
+(承载能力 $K$ 常常设定为 1且以这个值
+作为默认值)的影响; 结果将以群体大小相对时间
+的图表示. 我们还将设定一个可选项允许用户
+显示最后一些时间步骤中群体大小 (默认所有结果
+都会被绘制出来). 下面的函数就是做
+Ricker模型的数值模拟的.
+
+\begin{verbatim}
+ricker <- function(nzero, r, K=1, time=100, from=0, to=time)
+{
+    N <- numeric(time+1)
+    N[1] <- nzero
+    for (i in 1:time) N[i+1] <- N[i]*exp(r*(1 - N[i]/K))
+    Time <- 0:time
+    plot(Time, N, type="l", xlim=c(from, to))
+}
+\end{verbatim}
+
+你可以试一试下面的代码:
+
+\begin{verbatim}
+> layout(matrix(1:3, 3, 1))
+> ricker(0.1, 1); title("r = 1")
+> ricker(0.1, 2); title("r = 2")
+> ricker(0.1, 3); title("r = 3")
+\end{verbatim}
+
+\section{R 相关的文献}
+
+\begin{description}
+\item[手册.] 在目录 R\_HOME/doc/manual/下面有几份R安装时分发的手册:
+
+  \begin{itemize}
+  \item {\it R导论\footnote{译者注:已经有中文版发布.用 google 搜索即可得到.}} [R-intro.pdf],
+  \item {\it R 安装和管理} [R-admin.pdf],
+  \item {\it R 数据导入/导出} [R-data.pdf],
+  \item {\it 编写R扩展} [R-exts.pdf],
+  \item {\it R 语言定义} [R-lang.pdf].
+  \end{itemize}
+
+这些文件可能以不同的格式 (pdf, html, texi, \ldots)显示, 
+这取决于你采用的安装方式.
+
+\item[FAQ.] 在目录 R\_HOME/doc/html/ 还有一个 FAQ ({\it 常见问题集, Frequently Asked
+Questions}) .R-FAQ 的版本会在
+CRAN网站定期更新:
+
+\href{http://cran.r-project.org/doc/FAQ/R-FAQ.html}{http://cran.r-project.org/doc/FAQ/R-FAQ.html}
+
+\item[在线资源.] CRAN 网站拥有
+许多文档, 参考文献和其他有用的
+R 网页链接. 它还有有关R或者统计方法
+的出版物(书或者文章)的清单
+\footnote{\href{http://www.R-project.org/doc/bib/R-publications.html}{http://www.R-project.org/doc/bib/R-publications.html}}
+以及一些R用户编写的文档
+和手册\footnote{\href{http://cran.r-project.org/other-docs.html}{http://cran.r-project.org/other-docs.html}}.
+
+\item[邮件列表.] R有四种形式的邮件讨论列表; 
+订购, 发布信息以及阅读所有档案记录请参阅:
+\href{http://www.R-project.org/mail.html}{http://www.R-project.org/mail.html}.
+
+一般的讨论列表是`r-help'.对于R用户来说,
+这是一个非常有意思的资源(其他三个列表
+主要面向开发用户和
+新版本发布).许多用户向`r-help'咨询的函数或程序
+在档案文件中都已有回答. 如果在使用R的过程中碰到困难,
+你首先应该根据下面的建议处理一下, 然后才考虑是否
+给`r-help'发咨询信息:
+
+\begin{enumerate}
+\item 仔细阅读在线帮助文档 (可能需要
+搜索引擎);
+\item 阅读 R-FAQ;
+\item 搜索`r-help'档案文件, 或者
+使用一些网站提供的搜索引擎\footnote{这些网站的地址清单在
+\href{http://cran.r-project.org/search.html}{http://cran.r-project.org/search.html}};
+\item 在你提交问题前阅读``公告
+  指南''\footnote{\href{http://www.r-project.org/posting-guide.html}{http://www.r-project.org/posting-guide.html}}.
+\end{enumerate}
+
+\item[R 新闻.] 电子杂志 {\it R News} 的目的是弥补
+电子讨论列表和传统科学文献的
+鸿沟. 第一期是在
+2001年一月发布的\footnote{\href{http://cran.r-project.org/doc/Rnews/}{http://cran.r-project.org/doc/Rnews/}}.
+
+\item[在文献中引用R.] 最后, 如果你想在你的文章中引用R,
+你必须采用下面参考文献:
+  \begin{quote}
+  R Development Core Team (2005). R: A language and
+  environment for statistical computing. R
+  Foundation for Statistical Computing, Vienna,
+  Austria. ISBN 3-900051-07-0, URL:
+  http://www.R-project.org.
+  \end{quote}
+
+\end{description}
+
+%\printindex
+
+\end{document}
